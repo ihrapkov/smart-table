@@ -9,10 +9,24 @@
  * что позволяет переиспользовать логику сортировки с разными полями.
  */
 const sortUp = field => (a, b) => {
-    if (a[field] > b[field]) {
+    let valueA = a[field];
+    let valueB = b[field];
+
+    // Если значения - строки дат (формат YYYY-MM-DD), преобразуем их в Date
+    if (typeof valueA === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valueA)) {
+        valueA = new Date(valueA);
+        valueB = new Date(valueB);
+    }
+    // Если значения - строки-числа, преобразуем их в числа
+    else if (typeof valueA === 'string' && /^\d+(\.\d+)?$/.test(valueA)) {
+        valueA = parseFloat(valueA);
+        valueB = parseFloat(valueB);
+    }
+
+    if (valueA > valueB) {
         return 1;  // Значение в a больше, чем в b, перемещаем a вправо
     }
-    if (a[field] < b[field]) {
+    if (valueA < valueB) {
         return -1; // Значение в a меньше, чем в b, перемещаем a влево
     }
     return 0;      // Значения равны, сохраняем текущий порядок
@@ -29,10 +43,24 @@ const sortUp = field => (a, b) => {
  * Логика инвертирована по сравнению с сортировкой по возрастанию.
  */
 const sortDown = field => (a, b) => {
-    if (a[field] < b[field]) {
+    let valueA = a[field];
+    let valueB = b[field];
+
+    // Если значения - строки дат (формат YYYY-MM-DD), преобразуем их в Date
+    if (typeof valueA === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valueA)) {
+        valueA = new Date(valueA);
+        valueB = new Date(valueB);
+    }
+    // Если значения - строки-числа, преобразуем их в числа
+    else if (typeof valueA === 'string' && /^\d+(\.\d+)?$/.test(valueA)) {
+        valueA = parseFloat(valueA);
+        valueB = parseFloat(valueB);
+    }
+
+    if (valueA < valueB) {
         return 1;  // Значение в a меньше, чем в b, перемещаем a вправо
     }
-    if (a[field] > b[field]) {
+    if (valueA > valueB) {
         return -1; // Значение в a больше, чем в b, перемещаем a влево
     }
     return 0;      // Значения равны, сохраняем текущий порядок
@@ -82,8 +110,10 @@ export const sortMap = {
  * Это оптимизирует работу, предотвращая ненужные операции.
  */
 export function sortCollection(arr, field, order) {
-    if (field && order !== 'none' && sortMap[order])
-        return arr.toSorted(sortFn[order](field));
-    else
+    if (field && order !== 'none' && sortMap[order]) {
+        // Создаём копию массива и сортируем её (toSorted может не поддерживаться)
+        return [...arr].sort(sortFn[order](field));
+    } else {
         return arr;  // Возвращаем исходный массив без изменений, если сортировка не нужна
+    }
 }

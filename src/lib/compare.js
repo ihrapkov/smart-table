@@ -293,14 +293,14 @@ function compare(source, target, rulesList) {
 function createComparison(ruleNames, customRules = []) {
     return (source, target) => {
         const rulesList = [
+            ...customRules,
             ...ruleNames.map(ruleName => {
                 // Для правил, которым нужны параметры
                 if (ruleName === 'skipNonExistentSourceFields') {
                     return rules[ruleName](source);
                 }
                 return rules[ruleName]();
-            }),
-            ...customRules
+            })
         ];
 
         return compare(source, target, rulesList);

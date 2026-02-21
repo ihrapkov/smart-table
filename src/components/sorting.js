@@ -19,6 +19,13 @@ export function initSorting(columns) {
           column.dataset.value = "none"; // тогда сбрасываем её в начальное состояние
         }
       });
+
+      // Сбрасываем страницу на 1 при изменении сортировки
+      const form = action.closest("form");
+      const pageInput = form?.querySelector('input[name="page"]');
+      if (pageInput) {
+        pageInput.value = "1";
+      }
     } else {
       // @todo: #3.3 — получить выбранный режим сортировки
       columns.forEach((column) => {

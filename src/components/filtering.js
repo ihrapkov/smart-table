@@ -1,7 +1,50 @@
 import { createComparison, defaultRules } from "../lib/compare.js";
 
+// Кастомное правило для обработки диапазона суммы (totalFrom/totalTo -> total)
+// Это правило должно быть ПЕРВЫМ, чтобы обработать totalFrom/totalTo до других правил
+const totalRangeRule = () => (key, sourceValue, targetValue, source, target) => {
+  // Это правило обрабатывает только totalFrom и totalTo
+  if (key !== 'totalFrom' && key !== 'totalTo') {
+    return { continue: true };
+  }
+
+  const totalFrom = target.totalFrom;
+  const totalTo = target.totalTo;
+  const fromEmpty = totalFrom === undefined || totalFrom === null || totalFrom === '';
+  const toEmpty = totalTo === undefined || totalTo === null || totalTo === '';
+
+  // Если оба поля пустые, пропускаем фильтрацию по сумме
+  if (fromEmpty && toEmpty) {
+    return { skip: true };
+  }
+
+  // Получаем значение total из источника
+  const total = source.total;
+
+  // Проверяем нижнюю границу (totalFrom ограничивает снизу)
+  if (!fromEmpty) {
+    const fromValue = parseFloat(totalFrom);
+    if (!isNaN(fromValue) && total < fromValue) {
+      return { result: false };
+    }
+  }
+
+  // Проверяем верхнюю границу (totalTo ограничивает сверху)
+  if (!toEmpty) {
+    const toValue = parseFloat(totalTo);
+    if (!isNaN(toValue) && total > toValue) {
+      return { result: false };
+    }
+  }
+
+  // Если прошли проверки, продолжаем с другими правилами для остальных полей
+  // Но для totalFrom/totalTo мы уже дали результат
+  return { result: true };
+};
+
 // @todo: #4.3 — настроить компаратор
-const compare = createComparison(defaultRules);
+// totalRangeRule должно быть первым, чтобы обрабатывать totalFrom/totalTo до других правил
+const compare = createComparison(defaultRules, [totalRangeRule()]);
 
 export function initFiltering(elements, indexes) {
   // @todo: #4.1 — заполнить выпадающие списки опциями
